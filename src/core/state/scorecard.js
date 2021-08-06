@@ -1,14 +1,14 @@
 import {Period} from "@iapps/period-utilities";
-import {cloneDeep, find, flattenDeep, get as _get, set as _set, zipObjectDeep} from "lodash";
+import {cloneDeep, find, flattenDeep, get as _get, set as _set} from "lodash";
 import {atom, atomFamily, selector, selectorFamily} from "recoil";
 import getScorecard from "../../shared/services/getScorecard";
-import getScorecardCellData from "../../shared/services/getScorecardCellData";
 import getScorecardSummary from "../../shared/services/getScorecardSummary";
 import ScorecardAccessType from "../constants/scorecardAccessType";
 import OrgUnitSelection from "../models/orgUnitSelection";
 import Scorecard from "../models/scorecard";
 import ScorecardAccess from "../models/scorecardAccess";
 import ScorecardOptions from "../models/scorecardOptions";
+import ScorecardDataFetch from "../services/dataFetch";
 import {EngineState} from "./engine";
 import {PeriodResolverState} from "./period";
 
@@ -75,6 +75,7 @@ const ScorecardConfState = atomFamily({
     })
 })
 
+const dataFetch = new ScorecardDataFetch()
 
 const ScorecardDataState = selectorFamily({
     key: 'scorecard-data-state',
@@ -82,17 +83,11 @@ const ScorecardDataState = selectorFamily({
         const periods = get(PeriodResolverState)
         const {dataGroups} = get(ScorecardConfigStateSelector('dataSelection'))
         const dataSources = flattenDeep(flattenDeep(dataGroups.map(({dataHolders}) => dataHolders))?.map(({dataSources}) => dataSources))?.map(({id}) => id)
-        const {_data: analytics} = await getScorecardCellData({
+        return await dataFetch.getData({
             orgUnit: orgUnitId,
             periods: periods.map(({id}) => id),
             dataSources
         })
-        if (analytics) {
-            const rows = analytics?.rows;
-            return rows?.map((row) =>
-                zipObjectDeep(analytics?.headers
-                    ?.map(({name}) => name), row))
-        }
     }
 })
 
@@ -176,4 +171,5 @@ export {
     ScorecardDataState,
     ScorecardDataStateSelector,
     ScorecardForceUpdateState,
+    dataFetch
 }

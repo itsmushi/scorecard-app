@@ -5,7 +5,7 @@ import PropTypes from 'prop-types'
 import React, {Fragment, useEffect, useMemo, useState} from 'react'
 import {useRecoilValue, useResetRecoilState} from "recoil";
 import {PeriodResolverState} from "../../../../../../core/state/period";
-import {ScorecardConfigStateSelector, ScorecardViewState} from "../../../../../../core/state/scorecard";
+import {dataFetch, ScorecardConfigStateSelector, ScorecardViewState} from "../../../../../../core/state/scorecard";
 import useMediaQuery from "../../../../../../shared/hooks/useMediaQuery";
 import {
     useOrganisationUnitChildren,
@@ -56,6 +56,7 @@ export default function ScorecardTable({orgUnits, nested}) {
         else setId(undefined)
         return () => {
             setId(undefined)
+            dataFetch.kill();
         };
     }, [filteredOrgUnits?.length]);
 
@@ -64,6 +65,10 @@ export default function ScorecardTable({orgUnits, nested}) {
             updateKeyword(searchKeyword)
         } else {
             updateKeyword(undefined)
+        }
+
+        return () =>{
+            dataFetch.kill();
         }
     }, [searchKeyword]);
 

@@ -1,6 +1,6 @@
 import {useDataQuery} from "@dhis2/app-runtime";
 import {debounce, isEmpty} from 'lodash'
-import {useEffect, useMemo, useRef, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {useRecoilValueLoadable} from "recoil";
 import {OrgUnitChildren} from "../../core/state/orgUnit";
 
@@ -48,15 +48,7 @@ const orgUnitSearchQuery = {
 export function useSearchOrganisationUnit() {
     const [keyword, setKeyword] = useState();
     const {data, error, loading, refetch} = useDataQuery(orgUnitSearchQuery, {lazy: true})
-    const updateKeyword = useRef(debounce(setKeyword, 1000, {trailing: true, leading: false}))
-    const orgUnits = useMemo(() => {
-        if (!isEmpty(data)) {
-            const idResponse = data?.idQuery?.organisationUnits ?? [];
-            const nameResponse = data?.nameQuery?.organisationUnits ?? [];
-            return [...idResponse, ...nameResponse]
-        }
-        return []
-    }, [data]);
+    const updateKeyword = useRef(debounce(setKeyword, 3000, {trailing: true, leading: false}))
 
     useEffect(() => {
         if (!isEmpty(keyword)) {
@@ -65,7 +57,7 @@ export function useSearchOrganisationUnit() {
     }, [keyword]);
 
     return {
-        orgUnits,
+        orgUnits: !isEmpty(data) ? [...(data?.idQuery?.organisationUnits ?? []), ...(data?.nameQuery?.organisationUnits ?? [])] : [],
         error,
         loading,
         updateKeyword: updateKeyword.current

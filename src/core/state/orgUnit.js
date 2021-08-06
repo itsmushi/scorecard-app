@@ -1,5 +1,5 @@
 import {compact} from 'lodash'
-import {selectorFamily} from "recoil";
+import {selectorFamily, waitForAll} from "recoil";
 import {EngineState} from "./engine";
 const {atomFamily} = require("recoil");
 
@@ -48,9 +48,9 @@ export const OrgUnitPathState = atomFamily({
         key: 'orgUnitPathSelector',
         get: (path = '') => async ({get}) => {
             const orgUnits = compact(path.split('/'))
-            const orgUnitNames = orgUnits.map((id) => {
+            const orgUnitNames = waitForAll(orgUnits.map((id) => {
                 return get(OrgUnits(id))?.displayName
-            })
+            }))
             return orgUnitNames.join('/')
         }
     })
@@ -59,9 +59,9 @@ export const OrgUnitPathState = atomFamily({
 
 export const OrgUnitChildren = selectorFamily({
     key: 'orgUnitChildren',
-    get: (orgUnitId)=> async ({get})=>{
+    get: (orgUnitId) => async ({get}) => {
         const engine = get(EngineState)
-        const {orgUnit} = await engine.query(orgUnitChildrenQuery, {variables:{id: orgUnitId}})
+        const {orgUnit} = await engine.query(orgUnitChildrenQuery, {variables: {id: orgUnitId}})
 
         return orgUnit?.children ?? []
     }
