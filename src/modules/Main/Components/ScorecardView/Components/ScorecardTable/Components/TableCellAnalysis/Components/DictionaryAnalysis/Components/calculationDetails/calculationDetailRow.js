@@ -1,10 +1,8 @@
-import { useDataQuery } from '@dhis2/app-runtime'
-import {
-    DataTable,    DataTableToolbar,    DataTableHead,    TableHead,    DataTableBody,    TableBody,    DataTableFoot,    DataTableRow,    DataTableCell,    DataTableColumnHeader,
- CircularLoader } from '@dhis2/ui'
-import PropTypes from "prop-types";
-import React, { useContext,useEffect } from "react";
-import DataElementContext from '../../store/dataElementContext'
+import {CircularLoader, DataTableCell,} from '@dhis2/ui'
+import {useDataEngine, useDataQuery} from '@dhis2/app-runtime'
+import {useEffect, useState} from "react";
+import {atom, useRecoilState, useRecoilValue, useSetRecoilState} from "recoil";
+
 
 const query1={
     dataElement:{
@@ -32,12 +30,16 @@ const query1={
     }
 }
 
+export const dataElementsState = atom({
+    key: 'dataElementsStoreDictionary', // unique ID (with respect to other atoms/selectors)
+    default: [], // default value (aka initial value)
+});
+
+
 
 function CalculationDetailRow(props){
 
-    // {"id":arr[i],"val":"apiread value "}
-
-const testArr=[]
+let testArr=[]
 //structure of dataElemet in store is 
     // [
     //     {
@@ -47,35 +49,32 @@ const testArr=[]
     //     }
     // ]
 
-
-
+    //props
     const formula=props.formula
-
     const loc=props.location
 
+    //variables
+    let wordDtEl=[]
+    const[dataElementsArray,setDataElementArray]=useState([])
+    const engine = useDataEngine()
+    const [currentValue,updateRecoilHandler]= useRecoilState(dataElementsState)
 
-    const dataElements=useContext(DataElementContext)
+    useEffect(()=>{getWordDataEle(getFormulaSorces(formula)) },[])
 
-    var wordDtEl=[]
 
-    let allComplete=false
-   
-   
 
-    function addDatalementToStore(dat){
-        dataElements.addDataElement(dat);
+    const generateKey = (pre) => {
+        return `${ pre }_${ new Date().getTime() }`;
     }
-
     function setCharAt(str,index,chr) {
-        if(index > str.length-1) {return str;}
+        if(index > str.length-1) return str;
         return str.substring(0,index) + chr + str.substring(index+1);
     }
-
 
     function getFormulaSorces(formula){
         let ind1=0
         let ind2=0
-      const arr=[]
+      let arr=[]
 
         while(formula.search("#")>=0){//there is still a dataElement
             ind1=formula.indexOf("{")
@@ -94,13 +93,33 @@ const testArr=[]
         return arr
     }
 
-    function getWordDataEle(arr){
-       const arrWord=[]
-       for(let i=0;i<arr.length;i++){
-        arrWord.push({"id":arr[i],"val":getValueFromApi(arr[i]),"location":loc})
-       }
-       
-       return arrWord;
+  async function getWordDataEle(arr){
+        let allPromises=[];
+        let i=0
+        for(i=0;i<arr.length;i++){
+            let proms=getValueFromApi(arr[i])
+            allPromises.push(proms)
+        }
+        i=0
+       await Promise.all(allPromises).then(value => {
+           value.map((val)=>{ //We always return array just for uniformity
+               if(val.length>1){ //array of two elements first element is dataElement second element of array is category option combo
+                   wordDtEl.push({"id":arr[i],"val":val[0]+" "+val[1],"location":loc})
+               }else{   //this is array of one element for data element that are just pure no category options
+                   wordDtEl.push({"id":arr[i],"val":val[0],"location":loc})
+               }
+               ++i;
+           })
+           if(wordDtEl.length==arr.length){ //array is full so we reload to update UI
+               setDataElementArray(wordDtEl)
+               updateRecoilHandler( (prev)=>{
+                  return  prev.concat(wordDtEl)
+               } )
+
+           }
+
+        })
+
     }
 
     function getFormulaInWordsFromFullSources(formula,arrOfSources){
@@ -121,84 +140,75 @@ const testArr=[]
     }
 
     function getValueFromApi(strEle){
-       
+
         if(isPureDataElement(strEle)){
             //fetch value normally
-           return getValueDataElementOnly(strEle)[0];
+            return new Promise((resolve, reject) => {
+               resolve(getValueDataElementOnly(strEle))
+           })
         }else{
             //break to array and just take first element
-            let arr= strEle.split(".")
-            arr= getValueDataElementOptionCombo(arr[0],arr[1])
-            return arr[0]+" "+arr[1];
+            return new Promise(((resolve, reject) => {
+                let arr = strEle.split(".")
+                resolve(getValueDataElementOptionCombo(arr[0], arr[1]));
+            }))
         }
-       
-    }
-
-    
-    function getValueDataElementOnly(idEle){
-        const { loading, error, data } = useDataQuery(query2,{variables: {idEle}})
-        if(loading){
-            return <CircularLoader />
-         }
-     
-         if(error){
-          return <p> {error} </p> 
-         }  
-         return [data.dataElement.displayName]
-    }
-
-    function getValueDataElementOptionCombo(idEle,idComb){
-        const { loading, error, data } = useDataQuery(query1,{variables: {idEle,idComb}})
-        if(loading){
-            return <CircularLoader />
-         }
-     
-         if(error){
-          return <p> {error} </p> 
-         }  
-        
-         return [data.dataElement.displayName, data.categoryOptionCombo.displayName]
 
     }
-    
+
+   async function getValueDataElementOnly(idEle){
+
+        const data = await engine.query(query2,{variables: {idEle}})
+
+         return [data?.dataElement?.displayName]
+    }
+
+   async function getValueDataElementOptionCombo(idEle,idComb){
+        const data= await engine.query(query1,{variables: {idEle,idComb}})
+         return [data?.dataElement?.displayName, data?.categoryOptionCombo?.displayName]
+
+    }
+
     function getFinalWordFormula(formula){
-        
-         wordDtEl=getWordDataEle(getFormulaSorces(formula)) 
-        
-        wordDtEl.map((ele)=>{
-            let complete=true
-            if(typeof ele.val==='undefined'){
-                complete=false
-            }
-            else{
-                const tempArr=ele.val.split(" ")
-                if(tempArr.includes("undefined")){
-                    complete=false
-                }  
-             }
-             if(complete){
-                testArr.push(ele)
-             }
-             })
-             if(testArr.length===wordDtEl.length){//all element are entered with values from api 
-                allComplete=true
-                
-             }
-      
-         useEffect(()=>{ addDatalementToStore( testArr.map((el)=>{  return el  }));  },[allComplete])
-        // str.replace(/blue/g, "red");
-       return getFormulaInWordsFromFullSources(formula,wordDtEl).replace(/#/g,"") ;
+
+        //
+        // wordDtEl.map((ele)=>{
+        //     let complete=true
+        //     if(typeof ele.val==='undefined'){
+        //         complete=false
+        //     }
+        //     else{
+        //         let tempArr=ele.val.split(" ")
+        //         if(tempArr.includes("undefined")){
+        //             complete=false
+        //         }
+        //      }
+        //      if(complete){
+        //         testArr.push(ele)
+        //      }
+        //      })
+        //      if(testArr.length===wordDtEl.length){//all element are entered with values from api
+        //         allComplete=true
+        //
+        //      }
+        //
+        //  useEffect(()=>{ addDatalementToStore( testArr.map((el)=>{
+        //      console.log("called useeEffect")
+        //      return el  }));  },[allComplete])
+
+       return getFormulaInWordsFromFullSources(formula,dataElementsArray).replace(/#/g,"")
     }
-   
-  
+
     return      <>
+
+
                 <DataTableCell  bordered>
                     {getFinalWordFormula(formula)}
                 </DataTableCell>
                 <DataTableCell  bordered>
                      <ol>
-                         {wordDtEl.map((el)=>{
-                             return <li key={el.id}>{el.val}</li>
+                         {dataElementsArray.map((el)=>{
+                             return <li key={generateKey(el.id)}>{el.val}</li>
                          })}
                      </ol>
                 </DataTableCell>
@@ -206,10 +216,3 @@ const testArr=[]
 }
 
 export default CalculationDetailRow;
-
-CalculationDetailRow.prototype={
-    id:PropTypes.string.isRequired,
-    formula:PropTypes.string.isRequired,
-    location:PropTypes.string.isRequired,
-
-}

@@ -1,67 +1,61 @@
-import i18n from '@dhis2/d2-i18n'
 import {
     DataTable,
+    DataTableToolbar,
     TableHead,
+    DataTableBody,
     TableBody,
+    DataTableFoot,
     DataTableRow,
     DataTableColumnHeader,
 } from '@dhis2/ui'
-import React, { useContext } from "react";
-import DataElementContext from '../../store/dataElementContext'
+import {selector, useRecoilValue} from "recoil";
+import {dataElementsState} from "../calculationDetails/calculationDetailRow";
 import Row from './row'
 
-function DataElementSIndicator(){
+function DataElementSIndicator() {
 
-    const dataElements=useContext(DataElementContext)
-    
+    const dataElements = useRecoilValue(dataElementsState)
 
+    let i = 0
     return (<div>
-       <h3>
-           {i18n.t('Data elements in indicator')}</h3>
-        <p>{i18n.t('The following is the summary of the data elements used in calculations:')} </p>
-        
+        <h3> Data elements in indicator </h3>
+        <p> The following is the summary of the data elements used in calculations:</p>
+
         <DataTable>
             <TableHead>
                 <DataTableRow>
                     <DataTableColumnHeader bordered>
-                        {i18n.t('Data Element')}
-
+                        Data Element
                     </DataTableColumnHeader>
                     <DataTableColumnHeader bordered>
-                        {i18n.t('Expression part (Numerator/ Denominator)')}
-
+                        Expression part (Numerator/ Denominator)
                     </DataTableColumnHeader>
                     <DataTableColumnHeader>
-                        {i18n.t('Value Type')}
-
+                        Value Type
                     </DataTableColumnHeader>
                     <DataTableColumnHeader>
-                        {i18n.t('Zero Significance')}
-
+                        Zero Significance
                     </DataTableColumnHeader>
                     <DataTableColumnHeader>
-                        {i18n.t('Categories')}
-
+                        Categories
                     </DataTableColumnHeader>
                     <DataTableColumnHeader>
-                        {i18n.t('Datasets/ Programs')}
-
+                        Datasets/ Programs
                     </DataTableColumnHeader>
                     <DataTableColumnHeader>
-                        {i18n.t('Groups')}
+                        Groups
+                    </DataTableColumnHeader>
 
-                    </DataTableColumnHeader>          
-                
                 </DataTableRow>
             </TableHead>
             <TableBody>
-                {dataElements.dataElements.map((dtEle)=>{
-
-                    return <Row key={dtEle.id} datEl={dtEle} />
+                {dataElements.map((dtEle) => {
+                    i++
+                    return <Row key={i} datEl={dtEle}/>
                 })}
             </TableBody>
-            
-        </DataTable>  
+
+        </DataTable>
 
 
     </div>)

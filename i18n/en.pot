@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2021-08-12T11:22:46.553Z\n"
-"PO-Revision-Date: 2021-08-12T11:22:46.553Z\n"
+"POT-Creation-Date: 2021-08-16T18:23:15.191Z\n"
+"PO-Revision-Date: 2021-08-16T18:23:15.191Z\n"
 
 msgid "Welcome to Scorecard App!"
 msgstr "Welcome to Scorecard App!"
@@ -196,52 +196,6 @@ msgstr "Decreased from last period"
 
 msgid "There are no configured indicators for this scorecard"
 msgstr "There are no configured indicators for this scorecard"
-
-msgid "Calculation details"
-msgstr "Calculation details"
-
-msgid ""
-"Below are expression computing numerator and denominator, and related "
-"sources"
-msgstr ""
-"Below are expression computing numerator and denominator, and related "
-"sources"
-
-msgid "Expression"
-msgstr "Expression"
-
-msgid "Formula"
-msgstr "Formula"
-
-msgid "Sources"
-msgstr "Sources"
-
-msgid "Numerator"
-msgstr "Numerator"
-
-msgid "Denominator"
-msgstr "Denominator"
-
-msgid "Data elements in indicator"
-msgstr "Data elements in indicator"
-
-msgid "Data Element"
-msgstr "Data Element"
-
-msgid "Expression part (Numerator/ Denominator)"
-msgstr "Expression part (Numerator/ Denominator)"
-
-msgid "Value Type"
-msgstr "Value Type"
-
-msgid "Zero Significance"
-msgstr "Zero Significance"
-
-msgid "Categories"
-msgstr "Categories"
-
-msgid "Datasets/ Programs"
-msgstr "Datasets/ Programs"
 
 msgid "Data sources (Datasets/Programs)"
 msgstr "Data sources (Datasets/Programs)"

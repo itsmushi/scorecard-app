@@ -2,9 +2,8 @@ import { useDataQuery } from '@dhis2/app-runtime'
 import {
     DataTable,    DataTableToolbar,    DataTableHead,    TableHead,    DataTableBody,    TableBody,    DataTableFoot,    DataTableRow,    DataTableCell,    DataTableColumnHeader,
  CircularLoader } from '@dhis2/ui'
-import PropTypes, {string} from "prop-types";
-import React from 'react'
-import DataSource from "../dataSource/dataSource";
+
+
    
 const query = {
     dataElementInIndicator:{
@@ -58,7 +57,7 @@ function Row(props){
                     {typeof data !=='undefined'? data.valueType :"some value" }
                 </DataTableCell>
                 
-               
+
                 <DataTableCell bordered>
                     {typeof data !=='undefined'? JSON.stringify(data.zeroIsSignificant) :null}
                 </DataTableCell>
@@ -95,16 +94,3 @@ function Row(props){
 }
 
 export default Row
-
-
-Row.prototype={
-    datEl:PropTypes.object.isRequired
-}
-
-// object type is
-// type ={
-//     id:string,
-//     val:string,
-//     exprPart:string
-// }
-
