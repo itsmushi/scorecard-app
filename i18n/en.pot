@@ -5,8 +5,17 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2021-08-16T18:23:15.191Z\n"
-"PO-Revision-Date: 2021-08-16T18:23:15.191Z\n"
+"POT-Creation-Date: 2021-08-17T08:30:45.408Z\n"
+"PO-Revision-Date: 2021-08-17T08:30:45.408Z\n"
+
+msgid "Data"
+msgstr "Data"
+
+msgid "Organisation Unit"
+msgstr "Organisation Unit"
+
+msgid "Period"
+msgstr "Period"
 
 msgid "Welcome to Scorecard App!"
 msgstr "Welcome to Scorecard App!"
@@ -16,9 +25,6 @@ msgstr "Create a scorecard instantly, over tea break"
 
 msgid "New Scorecard"
 msgstr "New Scorecard"
-
-msgid "Organisation Unit"
-msgstr "Organisation Unit"
 
 msgid "Select Access"
 msgstr "Select Access"
@@ -194,83 +200,14 @@ msgstr "Increased from last period"
 msgid "Decreased from last period"
 msgstr "Decreased from last period"
 
+msgid "Drag to column headers to change layout"
+msgstr "Drag to column headers to change layout"
+
 msgid "There are no configured indicators for this scorecard"
 msgstr "There are no configured indicators for this scorecard"
 
-msgid "Data sources (Datasets/Programs)"
-msgstr "Data sources (Datasets/Programs)"
-
-msgid "Indicator is captured from the following sources"
-msgstr "Indicator is captured from the following sources"
-
-msgid "Datasets"
-msgstr "Datasets"
-
-msgid "submitting"
-msgstr "submitting"
-
-msgid "after every"
-msgstr "after every"
-
-msgid "Programs"
-msgstr "Programs"
-
-msgid "No indicator facts"
-msgstr "No indicator facts"
-
-msgid "Indicator facts"
-msgstr "Indicator facts"
-
-msgid "Belongs to the following groups of indicators"
-msgstr "Belongs to the following groups of indicators"
-
-msgid "Name"
-msgstr "Name"
-
-msgid "Code"
-msgstr "Code"
-
-msgid "Indicators"
-msgstr "Indicators"
-
-msgid "Introduction"
-msgstr "Introduction"
-
-msgid "is a"
-msgstr "is a"
-
-msgid "indicator, measured by"
-msgstr "indicator, measured by"
-
-msgid "to"
-msgstr "to"
-
-msgid "Its described as"
-msgstr "Its described as"
-
-msgid "Class"
-msgstr "Class"
-
-msgid "Upper"
-msgstr "Upper"
-
-msgid "Lower"
-msgstr "Lower"
-
-msgid "Color"
-msgstr "Color"
-
-msgid "No legends"
-msgstr "No legends"
-
-msgid "Legends for analysis"
-msgstr "Legends for analysis"
-
-msgid "Uses"
-msgstr "Uses"
-
-msgid "Dictionary analysis"
-msgstr "Dictionary analysis"
+msgid "Drag to the column headers to change layout"
+msgstr "Drag to the column headers to change layout"
 
 msgid "Column"
 msgstr "Column"
@@ -290,6 +227,9 @@ msgstr "Filter"
 msgid "Layout"
 msgstr "Layout"
 
+msgid "{{ dimension }}"
+msgstr "{{ dimension }}"
+
 msgid "Organisation Unit(s)"
 msgstr "Organisation Unit(s)"
 
@@ -304,6 +244,18 @@ msgstr "Chart"
 
 msgid "Dictionary"
 msgstr "Dictionary"
+
+msgid "Search Organisation Unit"
+msgstr "Search Organisation Unit"
+
+msgid "Drag to row headers to change layout "
+msgstr "Drag to row headers to change layout "
+
+msgid "Search Data"
+msgstr "Search Data"
+
+msgid "Name"
+msgstr "Name"
 
 msgid "Label"
 msgstr "Label"
