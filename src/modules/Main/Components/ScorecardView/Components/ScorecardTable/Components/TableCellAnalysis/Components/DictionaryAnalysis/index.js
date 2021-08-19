@@ -1,7 +1,8 @@
 import i18n from '@dhis2/d2-i18n'
 import PropTypes from 'prop-types'
 import React from 'react'
-import {useSetRecoilState} from "recoil";
+import {useSetRecoilState,useRecoilValue} from "recoil";
+import {DataSourceState} from "../../state/data";
 import {dataElementsState} from "./Components/calculationDetails/calculationDetailRow";
 import CalculationDetails from "./Components/calculationDetails/calculationDetails";
 import DataElementSIndicator from "./Components/dataElementsInIndicator/dataElementsIndicator";
@@ -11,12 +12,15 @@ import Introduction from "./Components/introduction/introduction";
 import LegendsAnalysis from "./Components/legendsAnalysis/legendsAnalysis";
 
 
-export default function DictionaryAnalysis({dimensions}) {
-    const {dataSources} = dimensions ?? {}
+export default function DictionaryAnalysis() {
+    // eslint-disable-next-line no-undef
+    const dataSources = useRecoilValue(DataSourceState)
 
     // console.log(dataSources)   //This is an array of selected indicators check the ScorecardIndicator model to know its properties
 
     const id=dataSources[0].id
+
+    //run object identifiable to determine the type of object
 
     const updateRecoilHandler=useSetRecoilState(dataElementsState)
     updateRecoilHandler([])
@@ -51,8 +55,4 @@ export default function DictionaryAnalysis({dimensions}) {
         </div> //TODO: @james
     )
 }
-
-DictionaryAnalysis.propTypes = {
-    dimensions: PropTypes.array.isRequired
-};
 
