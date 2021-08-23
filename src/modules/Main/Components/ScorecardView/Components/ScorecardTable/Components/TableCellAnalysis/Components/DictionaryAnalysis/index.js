@@ -5,7 +5,7 @@ import TopBar from "./Module/TopBar";
 
 export default function DictionaryAnalysis() {
     const dataSources = useRecoilValue(DataSourceState)
-    console.log(dataSources)
+    // console.log(dataSources)
 
     const dataSourceArray=dataSources.map((dt)=>{
         return dt.id

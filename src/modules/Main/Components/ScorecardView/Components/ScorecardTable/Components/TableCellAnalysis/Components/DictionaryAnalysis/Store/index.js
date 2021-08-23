@@ -14,3 +14,8 @@ export const dataSetReportingRatesStateDictionary=atom({
     key:'dataSetReportingRatesStateDictionary',
     default:[]
 })
+
+export const dataSourceStateDictionary=atom({
+    key:'dataSourceStateDictionary',
+    default:{id:undefined,type:undefined}
+})
