@@ -1,9 +1,25 @@
 import {Fn} from "@iapps/function-analytics";
 import {Period} from "@iapps/period-utilities";
 import mapLimit from "async/mapLimit";
-import {chunk, find, flatten, head, isEmpty, last, pickBy, uniq, uniqBy} from "lodash";
+import {
+    chunk,
+    find,
+    flatten,
+    forIn,
+    groupBy,
+    head,
+    isEmpty,
+    last,
+    pickBy,
+    reduce,
+    sortBy,
+    toPairs,
+    uniq,
+    uniqBy
+} from "lodash";
 import {BehaviorSubject, of} from "rxjs";
-import {map} from "rxjs/operators";
+import {map, take} from "rxjs/operators";
+import {TableSort} from "../constants/tableSort";
 
 export default class ScorecardDataEngine {
     _loading$ = new BehaviorSubject();
@@ -11,11 +27,14 @@ export default class ScorecardDataEngine {
     _dataEntities$ = new BehaviorSubject(this._dataEntities);
     dataEntities$ = this._dataEntities$.asObservable();
 
+
     constructor() {
         if (!ScorecardDataEngine?.instance) {
             ScorecardDataEngine.instance = this;
         }
         return ScorecardDataEngine.instance;
+
+
     }
 
     setPeriodType(periodType) {
@@ -82,14 +101,13 @@ export default class ScorecardDataEngine {
                     previous: previousPeriodRow?.value,
                 },
             };
-
             this._dataEntities$.next(this._dataEntities);
-            this._loading$.next(false);
         });
     }
 
     load() {
         if (this._canLoadData) {
+            this._loading$.next(true)
             this._getScorecardData({
                 selectedOrgUnits: this._selectedOrgUnits.map((orgUnit) => orgUnit?.id),
                 selectedPeriods: this._selectedPeriods.map((period) => period?.id),
@@ -116,6 +134,178 @@ export default class ScorecardDataEngine {
         );
     }
 
+    sortOrgUnitsByDataAndPeriod({dataSource, period, sortType}) {
+        return this.dataEntities$.pipe(take(1), map(dataEntities => {
+            if (sortType === TableSort.DEFAULT) {
+                return []
+            }
+            const requiredDataEntities = pickBy(dataEntities, (value, key) => {
+                const [dx, , pe] = key.split('_');
+                return dx === dataSource && pe === period
+            })
+            const sortedOrgUnits = sortBy(toPairs(requiredDataEntities), [(value) => last(value)?.current])
+
+            if (sortType === TableSort.DESC) {
+                return sortedOrgUnits.reverse().map(([key]) => key?.split('_')[1])
+            }
+            return sortedOrgUnits.map(([key]) => key?.split('_')[1])
+        }))
+    }
+
+    sortOrgUnitsByData({dataSource, periods = [], sortType}) {
+        return this.dataEntities$.pipe(take(1), map(dataEntities => {
+            if (sortType === TableSort.DEFAULT) {
+                return []
+            }
+            const requiredDataEntities = pickBy(dataEntities, (value, key) => {
+                const [dx, , pe] = key.split('_');
+                return dx === dataSource && periods.includes(pe)
+            })
+            const groupedValues = groupBy(toPairs(requiredDataEntities), (value) => (head(value)?.split('_'))[1])
+            const averageValues = {}
+
+            forIn(groupedValues, (value, key) => {
+                averageValues[key] = reduce(value, (acc, arr) => {
+                    return acc + (last(arr)?.current / periods?.length)
+                }, 0)
+            })
+
+            const sortedValues = sortBy(toPairs(averageValues), [(value) => last(value)])
+
+            if (sortType === TableSort.DESC) {
+                return sortedValues?.map(([ou]) => ou)?.reverse()
+            }
+            return sortedValues?.map(([ou]) => ou)
+        }))
+    }
+
+    sortDataSourceByOrgUnitAndPeriod({orgUnit, period, sortType}) {
+        return this.dataEntities$.pipe(take(1), map(dataEntities => {
+            if (sortType === TableSort.DEFAULT) {
+                return []
+            }
+            const requiredDataEntities = pickBy(dataEntities, (value, key) => {
+                const [, ou, pe] = key.split('_');
+                return ou === orgUnit && pe === period
+            })
+            const sortedOrgUnits = sortBy(toPairs(requiredDataEntities), [(value) => parseInt(last(value)?.current)])
+            if (sortType === TableSort.DESC) {
+                return sortedOrgUnits.reverse().map(([key]) => key?.split('_')[0])
+            }
+            return sortedOrgUnits.map(([key]) => key?.split('_')[0])
+        }))
+    }
+
+    sortDataSourceByOrgUnit({periods, orgUnit, sortType}) {
+        return this.dataEntities$.pipe(take(1), map(dataEntities => {
+            if (sortType === TableSort.DEFAULT) {
+                return []
+            }
+            const requiredDataEntities = pickBy(dataEntities, (value, key) => {
+                const [, ou, pe] = key.split('_');
+                return ou === orgUnit && periods.includes(pe)
+            })
+            const groupedValues = groupBy(toPairs(requiredDataEntities), (value) => (head(value)?.split('_'))[0])
+            const averageValues = {}
+
+            forIn(groupedValues, (value, key) => {
+                averageValues[key] = reduce(value, (acc, arr) => {
+                    return acc + (last(arr)?.current / periods?.length)
+                }, 0)
+            })
+
+            const sortedValues = sortBy(toPairs(averageValues), [(value) => last(value)])
+
+            if (sortType === TableSort.DESC) {
+                return sortedValues?.map(([ou]) => ou)?.reverse()
+            }
+            return sortedValues?.map(([ou]) => ou)
+        }))
+
+    }
+
+    getOrgUnitAverage(orgUnitId = '') {
+        return this.dataEntities$.pipe(
+            map((dataEntities) => {
+                const orgUnitsData = pickBy(dataEntities, (val, key) => key.match(RegExp(orgUnitId)))
+                const noOfOrgUnits = Object.keys(orgUnitsData).length
+                return reduce(orgUnitsData, (result, value) => {
+                    return (result ?? 0) + (value.current / noOfOrgUnits)
+                }, 0);
+            })
+        );
+    }
+
+    getDataSourceAverage(dataSources = []) {
+        return this.dataEntities$.pipe(
+            map((dataEntities) => {
+                const dataSourcesData = pickBy(dataEntities, (_, key) => key.match(RegExp(head(dataSources))) || key.match(RegExp(last(dataSources))))
+                const noOfDataSources = Object.keys(dataSourcesData).length;
+                return reduce(dataSourcesData, (result, value) => {
+                    return (result ?? 0) + (value.current / noOfDataSources)
+                }, 0);
+            })
+        );
+    }
+
+    getOrgUnitColumnAverage({period, orgUnit}) {
+        return this.dataEntities$.pipe(
+            map((dataEntities) => {
+                const orgUnitsData = pickBy(dataEntities, (val, key) => {
+                    const [, ou, pe] = key.split('_')
+                    return ou === orgUnit && pe === period
+                })
+                const noOfOrgUnits = Object.keys(orgUnitsData).length
+                return reduce(orgUnitsData, (result, value) => {
+                    return (result ?? 0) + (value.current / noOfOrgUnits)
+                }, 0);
+            })
+        );
+    }
+
+    getDataSourceColumnAverage({period, dataSources, orgUnits}) {
+        return this.dataEntities$.pipe(
+            map((dataEntities) => {
+                const dataSourcesData = pickBy(dataEntities, (val, key) => {
+                    const [dx, ou, pe] = key.split('_')
+                    return dataSources.includes(dx) && pe === period && orgUnits?.includes(ou)
+                })
+                const noOfDataSources = Object.keys(dataSourcesData).length
+                return reduce(dataSourcesData, (result, value) => {
+                    return (result ?? 0) + (value.current / noOfDataSources)
+                }, 0);
+            })
+        );
+    }
+
+    getOverallAverage(orgUnits) {
+        return this.dataEntities$.pipe(
+            map((dataEntities) => {
+                if (!isEmpty(dataEntities)) {
+                    const selectedDataEntities = pickBy(dataEntities, (value, key) => {
+                        const [, ou,] = key.split('_')
+                        return orgUnits?.includes(ou)
+                    })
+                    const noOfDataEntities = Object.keys(selectedDataEntities).length
+                    return reduce(selectedDataEntities, (result, value) => {
+                        return (result ?? 0) + (value.current / noOfDataEntities)
+                    }, 0);
+                }
+            })
+        );
+    }
+
+    getAllOrgUnitData(orgUnits) {
+        return this.dataEntities$.pipe(
+            map((dataEntities) => {
+                return pickBy(dataEntities, (value, key) => {
+                    const [, ou,] = key.split('_')
+                    return orgUnits?.includes(ou)
+                })
+            })
+        );
+    }
+
     get loading$() {
         return this._loading$.asObservable();
     }
@@ -133,6 +323,10 @@ export default class ScorecardDataEngine {
             (this._selectedData.normalDataItems?.length > 0 ||
                 this._selectedData.customDataItems?.length > 0)
         );
+    }
+
+    reset() {
+        this._dataEntities = {}
     }
 
     _getScorecardData(selections) {
@@ -223,6 +417,7 @@ export default class ScorecardDataEngine {
                     });
             },
             (totalErr, totalRes) => {
+                this._loading$.next(false)
             }
         );
     }
